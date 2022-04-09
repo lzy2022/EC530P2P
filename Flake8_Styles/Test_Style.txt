@@ -1,0 +1,11 @@
+[flake8]
+
+extend-ignore = W292, W293, E712, E501, E402
+
+exclude = 
+	.git,
+	old,
+	build,
+	dist
+
+max-complexity = 10

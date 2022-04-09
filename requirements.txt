@@ -1,0 +1,12 @@
+numpy
+matplotlib >= 3.0
+
+flake8
+mypy
+pytest >= 4.0
+
+requests
+flask
+flask-restful
+celery
+Redis

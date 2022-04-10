@@ -50,7 +50,10 @@ class Client(DatagramProtocol):
         user_id_s = msg['user_id_s']
         content = msg['content']
         time = msg['time']
-        self.receive_msg(user_id_s, content, time)
+        if(content == '__SYNC'):
+            sync_result = self.sync_all_msg()
+        else:
+            self.receive_msg(user_id_s, content, time)
     
     def send_msg(self, user_id_r, content, time):
         msg = {}
@@ -60,6 +63,10 @@ class Client(DatagramProtocol):
         encoded_msg = json.dumps(msg).encode('utf-8')
         self.transport.write(encoded_msg, 
                              (self.user_list[user_id_r][0],int(self.user_list[user_id_r][1])))
+    
+    def send_sync_request(self, user_id_r):
+        if user_id_r in self.user_list.keys():
+            self.send_msg(user_id_r, '__SYNC', '100000')
     
     def sync_all_msg(self):
         msg_list = db_ac.get_msg_pend()
@@ -128,6 +135,8 @@ class Client(DatagramProtocol):
                 online_list = self.user_list.keys()
                 self.chat_uid = input('Enter a user_id to open the chat room: ')
                 db_ac.init_msg_chat(self.chat_uid)
+                self.update_user_list()
+                msg_result = self.sync_all_msg()
                 print('Now opened a chat room with' + self.chat_uid)
                 print('Type __q to quite the chat room')
                 reactor.callInThread(self.chatbox_minitor)

@@ -136,6 +136,7 @@ class Client(DatagramProtocol):
                 self.chat_uid = input('Enter a user_id to open the chat room: ')
                 db_ac.init_msg_chat(self.chat_uid)
                 self.update_user_list()
+                self.send_sync_request(self.chat_uid)
                 msg_result = self.sync_all_msg()
                 print('Now opened a chat room with' + self.chat_uid)
                 print('Type __q to quite the chat room')

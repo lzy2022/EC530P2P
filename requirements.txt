@@ -10,3 +10,5 @@ flask
 flask-restful
 celery
 Redis
+
+Twisted

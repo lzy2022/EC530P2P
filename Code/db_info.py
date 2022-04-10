@@ -21,9 +21,9 @@ class DB_acc_info:
         self.user_ip_list = {}
         self.uid_list = []
         for user_id in users:
-            self.user_list[user_id] = False
-            self.user_ip_list[user_id] = ''
-            self.uid_list.append(user_id)
+            self.user_list[user_id[0]] = False
+            self.user_ip_list[user_id[0]] = ''
+            self.uid_list.append(user_id[0])
         con.close()
             
     def varify_user(self, u_id, pw):
@@ -42,15 +42,15 @@ class DB_acc_info:
     def set_user_state(self, u_id, state):
         self.user_list[u_id] = state
         
-    def set_user_ip(self, u_id, ip):
-        self.user_ip_list[u_id] = ip
+    def set_user_ip(self, u_id, ip, port):
+        self.user_ip_list[u_id] = (ip, port)
             
-    def user_login(self, user_id, pw, u_ip):
+    def user_login(self, user_id, pw, u_ip, port):
         if self.varify_user(user_id, pw) == False:
             return False
         else:
             self.set_user_state(user_id, True)
-            self.set_user_ip(user_id, u_ip)
+            self.set_user_ip(user_id, u_ip, port)
         return True
             
     def user_logout(self, user_id, pw):
@@ -58,7 +58,7 @@ class DB_acc_info:
             return False
         else:
             self.set_user_state(user_id, False)
-            self.set_user_ip(user_id, '')
+            self.set_user_ip(user_id, '', '')
         return True
     
     def get_user_list(self):

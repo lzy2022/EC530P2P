@@ -52,6 +52,8 @@ class Client(DatagramProtocol):
         time = msg['time']
         if(content == '__SYNC'):
             sync_result = self.sync_all_msg()
+        elif(content == '__q'):
+            pass
         else:
             self.receive_msg(user_id_s, content, time)
     
@@ -69,6 +71,7 @@ class Client(DatagramProtocol):
             self.send_msg(user_id_r, '__SYNC', '100000')
     
     def sync_all_msg(self):
+        self.update_user_list()
         msg_list = db_ac.get_msg_pend()
         sent_count = 0
         fail_count = 0
@@ -89,7 +92,7 @@ class Client(DatagramProtocol):
     def receive_msg(self, user_id_s, content, time):
         db_ac.save_msg(user_id_s, self.user_id, time, content, 'SYN', 'N')
         if user_id_s != self.chat_uid:
-            print('***New Message From ' + user_id_s + ' ***')
+            print('***New Message From ' + user_id_s + '***')
         return True
 
     def chatbox_minitor(self):
@@ -113,10 +116,9 @@ class Client(DatagramProtocol):
         -c: Open a chat session with <user_id> 
             (message will be saved locally if <user_id> is not online.
             use -r to resend all pending message when <user_id> is online)
-        -q: Logout and Quit (then use Ctrl + C to quit the program)
-        '''
+        -q: Logout and Quit (then use Ctrl + C to quit the program)'''
         while True:
-            command = input(info)
+            command = input(info + '\n')
             if(command == '-r'):
                 self.update_user_list()
                 msg_result = self.sync_all_msg()
@@ -143,6 +145,8 @@ class Client(DatagramProtocol):
                 reactor.callInThread(self.chatbox_minitor)
                 while True:
                     msg_content = input()
+                    self.update_user_list()
+                    online_list = self.user_list.keys()
                     current_t = str(datetime.datetime.now())
                     if self.chat_uid in online_list:
                         self.send_msg(self.chat_uid, msg_content, current_t)

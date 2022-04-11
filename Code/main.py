@@ -1,4 +1,5 @@
 from ast import arg
+import resource
 from flask import Flask, url_for, jsonify, request
 from flask_restful import Api, Resource, reqparse
 from numpy import require
@@ -37,8 +38,8 @@ class User_Login(Resource):
 
 class User_Logout(Resource):
     def post(self):
-        u_id = request.files['u_id'].read()
-        pw = request.files['pw'].read()
+        u_id = rsa.decrypt(request.files['u_id'].read(), sever_key_private)
+        pw = rsa.decrypt(request.files['pw'].read(), sever_key_private)
         u_id = u_id.decode(encoding='UTF-8')
         pw = pw.decode(encoding='UTF-8')
         state = db_ac.user_logout(u_id, pw)
@@ -46,6 +47,11 @@ class User_Logout(Resource):
             return {'message':'Loged out'}, 200
         else:
             return {'message':'Logout falied'}, 400
+        
+class New_User(Resource):
+    def post(self):
+        pass
+        
 
 class Get_User_List(Resource):
     def get(slef):

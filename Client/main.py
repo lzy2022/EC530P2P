@@ -170,8 +170,9 @@ class Client(DatagramProtocol):
                             
             elif(command == '-q'):
                 response = requests.post(SEVER_BASE + "/logout", 
-                                         files={'u_id':self.user_id.encode(encoding='UTF-8'),
-                                                'pw': self.user_pw.encode(encoding='UTF-8')})
+                                         files={'u_id': rsa.encrypt(self.user_id.encode(encoding='UTF-8'), self.sever_k),
+                                                'pw': rsa.encrypt(self.user_pw.encode(encoding='UTF-8'), self.sever_k)
+                                                })
                 return True
             else:
                 print('Invalid Command: ' + command)

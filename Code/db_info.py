@@ -39,6 +39,18 @@ class DB_acc_info:
             return False
         return True
     
+    def add_user(self, u_id, pw):
+        con = sqlite3.connect(db_addr)
+        cur = con.cursor()
+        cur.execute("SELECT * FROM user_pw WHERE user_id = ?", (u_id,))
+        user = cur.fetchone()
+        if user != None:
+            return False
+        cur.execute("INSERT INTO user_pw (user_id, pw) VALUES (?, ?)",
+                (u_id, pw,))
+        con.commit()
+        con.close()
+    
     def set_user_state(self, u_id, state):
         self.user_list[u_id] = state
         

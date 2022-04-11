@@ -170,11 +170,26 @@ class Client(DatagramProtocol):
                             
             elif(command == '-q'):
                 response = requests.post(SEVER_BASE + "/logout", 
-                                         files={'u_id':self.user_id.encode(encoding='UTF-8'),
-                                                'pw': self.user_pw.encode(encoding='UTF-8')})
+                                         files={'u_id': rsa.encrypt(self.user_id.encode(encoding='UTF-8'), self.sever_k),
+                                                'pw': rsa.encrypt(self.user_pw.encode(encoding='UTF-8'), self.sever_k)
+                                                })
                 return True
             else:
                 print('Invalid Command: ' + command)
+                
+def user_reg(sever_key):
+    while True:
+        user_id = input('Please Choose a User ID: ')
+        pw = input('Please Enter a PassWord: ')
+        response = requests.post(SEVER_BASE + "/reg", 
+                                files={'u_id': rsa.encrypt(user_id.encode(encoding='UTF-8'), sever_key),
+                                       'pw': rsa.encrypt(pw.encode(encoding='UTF-8'), sever_key)})
+        if((response.json())['message'] == 'User Added'):
+            print('User Account Created')
+            print('Please Login...')
+            break
+        print('User ID Exist... Please Choose Another User ID...')
+        
             
     
 if __name__ == "__main__":
@@ -196,8 +211,21 @@ if __name__ == "__main__":
     pri_f.close() 
     sever_f = open(sever_key_addr,'r')
     severkey = rsa.PublicKey.load_pkcs1(sever_f.read(), 'PEM')
-    sever_f.close() 
-      
+    sever_f.close()
+    
+    while True:
+        state = input('''
+            <login>:  Login with user ID and password
+            <reg>:    Register a new user account
+        Please Enter: ''')
+        if state == 'login':
+            break
+        elif state == 'reg':
+            user_reg(severkey)
+            break
+        else:
+            print('Invalid Command:' + state)
+    
     port = int(input('Please Select A Port (2000~5000): '))
     reactor.listenUDP(port, Client('localhost', port, publickey, privatekey, severkey))
     reactor.run()

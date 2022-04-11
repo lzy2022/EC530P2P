@@ -1,12 +1,7 @@
-from ast import arg
-import resource
 from flask import Flask, url_for, jsonify, request
 from flask_restful import Api, Resource, reqparse
 from numpy import require
-import proto
 from db_info import DB_acc_info
-import random
-import copy
 import sys
 import rsa
 
@@ -50,8 +45,15 @@ class User_Logout(Resource):
         
 class New_User(Resource):
     def post(self):
-        pass
-        
+        u_id = rsa.decrypt(request.files['u_id'].read(), sever_key_private)
+        pw = rsa.decrypt(request.files['pw'].read(), sever_key_private)
+        u_id = u_id.decode(encoding='UTF-8')
+        pw = pw.decode(encoding='UTF-8')
+        state = db_ac.add_user(u_id, pw)
+        if state == True:
+            return {'message': 'User Added'}, 200
+        else:
+            return {'message': 'Please Use Another User ID'}, 400
 
 class Get_User_List(Resource):
     def get(slef):
@@ -61,6 +63,7 @@ class Get_User_List(Resource):
 api.add_resource(User_Login, '/login')
 api.add_resource(User_Logout, '/logout')
 api.add_resource(Get_User_List, '/online_list')
+api.add_resource(New_User, '/reg')
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:

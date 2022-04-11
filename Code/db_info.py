@@ -50,6 +50,10 @@ class DB_acc_info:
                 (u_id, pw,))
         con.commit()
         con.close()
+        self.user_list[u_id] = False
+        self.user_ip_list[u_id] = ''
+        self.uid_list.append(u_id)
+        return True
     
     def set_user_state(self, u_id, state):
         self.user_list[u_id] = state

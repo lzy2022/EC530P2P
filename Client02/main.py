@@ -12,12 +12,13 @@ from os.path import exists
 db_addr = './Client.db'
 public_key_addr = './ClientKey_Public.pem'
 private_key_addr = './ClientKey_Private.pem'
+sever_key_addr = './SeverKey_Public.pem'
 db_ac = DB_acc_info(db_addr)
 SEVER_BASE = "http://127.0.0.1:5000/"
 PAYLOAD_SIZE = 2048
         
 class Client(DatagramProtocol):
-    def __init__(self, host, port, public_k, private_k):
+    def __init__(self, host, port, public_k, private_k, sever_key):
         if host == 'localhost':
             host = '127.0.0.1'
         self.local_port = port
@@ -31,14 +32,15 @@ class Client(DatagramProtocol):
         self.login_state = False
         self.public_k = public_k
         self.private_k = private_k
+        self.sever_k = sever_key
     
     def startProtocol(self):
         while(self.login_state == False):
             self.user_id = input('User ID: ')
             self.user_pw = input('Pass Word: ')
             response = requests.post(SEVER_BASE + "/login", 
-                                     files={'u_id': self.user_id.encode(encoding='UTF-8'),
-                                            'pw': self.user_pw.encode(encoding='UTF-8'),
+                                     files={'u_id': rsa.encrypt(self.user_id.encode(encoding='UTF-8'), self.sever_k),
+                                            'pw': rsa.encrypt(self.user_pw.encode(encoding='UTF-8'), self.sever_k),
                                             'port': str(self.local_port).encode(encoding='UTF-8'),
                                             'key': self.public_k.save_pkcs1('PEM')})
             if((response.json())['message'] == 'Loged in'):
@@ -192,7 +194,10 @@ if __name__ == "__main__":
     pri_f = open(private_key_addr,'r')
     privatekey = rsa.PrivateKey.load_pkcs1(pri_f.read(), 'PEM')
     pri_f.close() 
+    sever_f = open(sever_key_addr,'r')
+    severkey = rsa.PublicKey.load_pkcs1(sever_f.read(), 'PEM')
+    sever_f.close() 
       
     port = int(input('Please Select A Port (2000~5000): '))
-    reactor.listenUDP(port, Client('localhost', port, publickey, privatekey))
+    reactor.listenUDP(port, Client('localhost', port, publickey, privatekey, severkey))
     reactor.run()

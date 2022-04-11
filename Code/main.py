@@ -7,18 +7,21 @@ from db_info import DB_acc_info
 import random
 import copy
 import sys
+import rsa
 
 app = Flask(__name__)
 api = Api(app)
 
 db_addr = './Sever.db'
+key_addr = './SeverKey_Private.pem'
 
 db_ac = None
+sever_key_private = None
 
 class User_Login(Resource):
     def post(self): 
-        u_id = request.files['u_id'].read()
-        pw = request.files['pw'].read()
+        u_id = rsa.decrypt(request.files['u_id'].read(), sever_key_private)
+        pw = rsa.decrypt(request.files['pw'].read(), sever_key_private)
         port = request.files['port'].read()
         key = request.files['key'].read()
         u_id = u_id.decode(encoding='UTF-8')
@@ -57,4 +60,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         db_addr = sys.argv[1]
     db_ac = DB_acc_info(db_addr)
+    sever_f = open(key_addr,'r')
+    sever_key_private = rsa.PrivateKey.load_pkcs1(sever_f.read(), 'PEM')
+    sever_f.close() 
     app.run(debug=True)

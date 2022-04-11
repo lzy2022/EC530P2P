@@ -20,11 +20,13 @@ class User_Login(Resource):
         u_id = request.files['u_id'].read()
         pw = request.files['pw'].read()
         port = request.files['port'].read()
+        key = request.files['key'].read()
         u_id = u_id.decode(encoding='UTF-8')
         pw = pw.decode(encoding='UTF-8')
         port = port.decode(encoding='UTF-8')
+        key = key.decode(encoding='UTF-8')
         u_ip = request.remote_addr
-        state = db_ac.user_login(u_id, pw, u_ip, port)
+        state = db_ac.user_login(u_id, pw, u_ip, port, key)
         if state == True:
             return {'message':'Loged in', 'client_ip': u_ip}, 200
         else:

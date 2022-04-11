@@ -1,21 +1,23 @@
 import json
-from matplotlib.pyplot import cla
 from db_info import DB_acc_info
-import random
-import copy
 import sys
 import datetime
 import time
 import requests
 from twisted.internet.protocol import DatagramProtocol
 from twisted.internet import reactor
+import rsa
+from os.path import exists
 
 db_addr = './Client.db'
+public_key_addr = './ClientKey_Public.pem'
+private_key_addr = './ClientKey_Private.pem'
 db_ac = DB_acc_info(db_addr)
 SEVER_BASE = "http://127.0.0.1:5000/"
+PAYLOAD_SIZE = 2048
         
 class Client(DatagramProtocol):
-    def __init__(self, host, port):
+    def __init__(self, host, port, public_k, private_k):
         if host == 'localhost':
             host = '127.0.0.1'
         self.local_port = port
@@ -25,7 +27,10 @@ class Client(DatagramProtocol):
         self.user_pw = ''
         self.chat_uid = ''
         self.user_list = {}
+        self.user_keys = {}
         self.login_state = False
+        self.public_k = public_k
+        self.private_k = private_k
     
     def startProtocol(self):
         while(self.login_state == False):
@@ -34,7 +39,8 @@ class Client(DatagramProtocol):
             response = requests.post(SEVER_BASE + "/login", 
                                      files={'u_id': self.user_id.encode(encoding='UTF-8'),
                                             'pw': self.user_pw.encode(encoding='UTF-8'),
-                                            'port': str(self.local_port).encode(encoding='UTF-8')})
+                                            'port': str(self.local_port).encode(encoding='UTF-8'),
+                                            'key': self.public_k.save_pkcs1('PEM')})
             if((response.json())['message'] == 'Loged in'):
                 self.local_ip = (response.json())['client_ip']
                 self.login_state = True
@@ -46,7 +52,8 @@ class Client(DatagramProtocol):
         reactor.callInThread(self.text_UI)
         
     def datagramReceived(self, datagram, addr):
-        msg = json.loads(datagram.decode('utf-8'))
+        decoded_data = rsa.decrypt(datagram, self.private_k)
+        msg = json.loads(decoded_data.decode('utf-8'))
         user_id_s = msg['user_id_s']
         content = msg['content']
         time = msg['time']
@@ -62,7 +69,8 @@ class Client(DatagramProtocol):
         msg['user_id_s'] = self.user_id
         msg['content'] = content
         msg['time'] = time
-        encoded_msg = json.dumps(msg).encode('utf-8')
+        r_public_k = rsa.PublicKey.load_pkcs1(self.user_keys[user_id_r], 'PEM')
+        encoded_msg = rsa.encrypt(json.dumps(msg).encode('utf-8'), r_public_k)
         self.transport.write(encoded_msg, 
                              (self.user_list[user_id_r][0],int(self.user_list[user_id_r][1])))
     
@@ -88,6 +96,8 @@ class Client(DatagramProtocol):
     def update_user_list(self):
         response = requests.get(SEVER_BASE + "/online_list")
         self.user_list = (response.json())['user_list']
+        for u_id in self.user_list.keys():
+            self.user_keys[u_id] = self.user_list[u_id][2].encode('utf-8')
 
     def receive_msg(self, user_id_s, content, time):
         db_ac.save_msg(user_id_s, self.user_id, time, content, 'SYN', 'N')
@@ -166,6 +176,23 @@ class Client(DatagramProtocol):
             
     
 if __name__ == "__main__":
+    if exists(public_key_addr) == False or exists(private_key_addr) == False:
+        print('Generating New Key Sets...')
+        public_k, private_k = rsa.newkeys(PAYLOAD_SIZE)
+        pub_f = open(public_key_addr, 'wb')
+        pub_f.write(public_k.save_pkcs1('PEM'))
+        pub_f.close()
+        pri_f = open(private_key_addr, 'wb')
+        pri_f.write(private_k.save_pkcs1('PEM'))
+        pri_f.close()
+    
+    pub_f = open(public_key_addr,'r')
+    publickey = rsa.PublicKey.load_pkcs1(pub_f.read(), 'PEM')
+    pub_f.close() 
+    pri_f = open(private_key_addr,'r')
+    privatekey = rsa.PrivateKey.load_pkcs1(pri_f.read(), 'PEM')
+    pri_f.close() 
+      
     port = int(input('Please Select A Port (2000~5000): '))
-    reactor.listenUDP(port, Client('localhost', port))
+    reactor.listenUDP(port, Client('localhost', port, publickey, privatekey))
     reactor.run()

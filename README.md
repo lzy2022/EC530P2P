@@ -21,21 +21,38 @@ This RESTful API is designed and powered uing google cloud sever. When posting h
 ## Github Structure
 ### Top Level
     - .github
-    - Code (*The Main Body of the Project)
+    - Code (*Code for sever-end application)
+    - Client (*Code for client-end application)
+    - Client01 & Client02 (Testing copy)
     - Flake8_Styles
     - requirements.txt
     - README.md
 #### Code 
     - main.py
-          main.py contains the main function of the API. This file is used to launch the back-end server
-    - app.yaml
-          Config info for google cloud sever
+          main.py contains the main function of Sever. This file is used to launch the back-end server
     - requirements.txt
           Config info for google cloud sever
-    - This_is_a_test.wav
-          A test speech file
+    - Sever.db
+          Database of the sever, contains user IDs & passwords
+    - db_info
+          Module for database interface
+    - SeverKey_Private.pem
+          Private key for the sever
     - API_test.py
           A test session
+#### Client
+    - main.py
+          Contains the main function of client application
+    - Client.db
+          Database of the client application, stores all the chat messages send from/to the local account
+    - db_info.py 
+          Module for database interface
+    - SeverKey_Public.pem
+          Public key to communicate with the sever
+    - test.py
+          A test session
+    - ClientKey_Private.pem & ClientKey_Public.pem
+          These two files would be generated after running the clent application, stores a pair of keys used to communicate with other client applications
   
 ## Setting up Back-end Sever
 This project is designed for google cloud. To set up the sever, just run the following line in the Code folder:
@@ -43,9 +60,21 @@ This project is designed for google cloud. To set up the sever, just run the fol
 
 The google cloud sever should have the following APIs enabled:
 
-        google cloud speech to text API
         google-api-python-client
         google-cloud-tasks==2.7.1
+
+The sever-end application is based on RESTful Flask, communicates with the client-end through http calls. Following functions are supported by the sever:
+
+    - https://sever_addr/login:
+          User login with user ID & password (both encrypted), submitting their public key so that other clients can communicate with them. 
+    - https://sever_addr/logout:
+          User logout with user ID & password (both encrypted)
+    - https://sever_addr/online_list:
+          Get all the online user IDs and their public keys
+    - https://sever_addr/reg:
+          Register a new account with user ID & password (both encrypted) 
+
+After user login with user ID & password, the client application would upload the public key and pull the newest online list (contains user IDs & public keys of other users)from the sever. Then 
         
 ## Functions of RESTful API and Request Formates
 The following parts contain formates and functions that can be called from the front-end side using http requests. Users need to import the following python modules:

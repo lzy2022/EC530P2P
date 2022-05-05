@@ -1,18 +1,10 @@
-# EC530_Project4
+# EC530 P2P Project
 ## Intro
-This RESTful API is designed and powered uing google cloud sever. When posting http request with speech file, please encode the speech file as '.wav' with sample rate = 16000Hz and single track
+This project contains a P2P chat app (client application & user discover sever). The user discover sever is implement using RESTful API; client application is a twisted sever sending / recieving packages from other clients / sever.
 
  [Github Structure](#Github-Structure)
  
  [Setting up Back-end Sever](#Setting-up-Back-end-Sever)
- 
- [Functions of RESTful API & Request Formates](#Functions-of-RESTful-API-and-Request-Formates)
- 
- [----Post Speech File](#Post-Speech-File)
- 
- [----Get Task State](#Get-Task-State)
- 
- [----Get Task Result](#Get-Task-Result)
  
  [Session Examples](#Session-Examples)
  
@@ -75,42 +67,9 @@ The sever-end application is based on RESTful Flask, communicates with the clien
           Register a new account with user ID & password (both encrypted) 
 
 After user login with user ID & password, the client application would upload the public key and pull the newest online list (contains user IDs & public keys of other users)from the sever. Then 
-        
-## Functions of RESTful API and Request Formates
-The following parts contain formates and functions that can be called from the front-end side using http requests. Users need to import the following python modules:
-
-        import requests
-        import json
-        
-### Post Speech File
-The address to post the file is [http://'sever_address'/s2t/]. Posting a speech file can be done using the following request: 
-
-        BASE = "http://ec530pj4.uk.r.appspot.com/"
-        # speech file should have sample rate = 16000 and single track
-        with open([Speech File Location], 'rb') as s_file: 
-          response = requests.post(BASE + "s2t/" + '[any digit]', files={'file': s_file})
-        
-[response] containse a dictionary with key = {'task_id'}. task_id is the sever-side queued task id created for this post request, user can use task_id to track the completion states of the task and request for the task result.
-
-### Get Task State
-The address to get task state is [http://'sever_address'/task_state/].
-
-        BASE = "http://ec530pj4.uk.r.appspot.com/"
-        response = requests.get(BASE + "task_state/" + str([task_id]))
-        
-[response] containse a dictionary with key = {'task_id', 'task_state'}. task_state can have the following value, representing different states of the task:
-        0: Free to start
-        1: Working
-        2: Completed
-        
-### Get Task Result
-The address to get task result is [http://'sever_address'/s2t/[task_id]]. [task_id] is the queued task id of the previous post request:
-
-        BASE = "http://ec530pj4.uk.r.appspot.com/"
-        response = requests.get(BASE + "s2t/" + str([task_id]))
-        
-[response] containse a dictionary with key = {'result'}. [result] is converted text message.
                                                                                         
 ## Session Examples
-The first step is to download the database framework using the module [db_setup.py], the downloaded framework is named [Example_db.db]. The example then sets up a local sever connected to []Example_db.db and open the default python http port :5000, the address of the sever is http://127.0.0.1:5000/
+The first step is to create the client application in a seperate folder. The client application would create a new key set if there is no key found in the current folder.
+
+The user first need to register for a new account:
 ![alt text](https://github.com/lzy2022/S2022_EC530_Project2/raw/main/Images/EX1.PNG)

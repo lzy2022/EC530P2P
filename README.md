@@ -72,4 +72,17 @@ After user login with user ID & password, the client application would upload th
 The first step is to create the client application in a seperate folder. The client application would create a new key set if there is no key found in the current folder.
 
 The user first need to register for a new account:
-![alt text](https://github.com/lzy2022/S2022_EC530_Project2/raw/main/Images/EX1.PNG)
+![alt text](https://github.com/lzy2022/EC530P2P/raw/main/images/1.PNG)
+
+Login with the new account
+![alt text](https://github.com/lzy2022/EC530P2P/raw/main/images/2.PNG)
+![alt text](https://github.com/lzy2022/EC530P2P/raw/main/images/3.PNG)
+
+Sent message to anouther user test02 (test02 does not have to be online)
+![alt text](https://github.com/lzy2022/EC530P2P/raw/main/images/4.PNG)
+
+test02 would receive info that **New Message From test01**
+![alt text](https://github.com/lzy2022/EC530P2P/raw/main/images/5.PNG)
+
+chat room can be opened and start a chat session
+![alt text](https://github.com/lzy2022/EC530P2P/raw/main/images/6.PNG)
